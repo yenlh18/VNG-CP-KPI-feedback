@@ -11,6 +11,8 @@ A production-oriented **Next.js web app** for Vercel. This is not a static HTML 
 - `POST /api/feedback` API with server-side validation
 - Persistent Postgres storage via `@neondatabase/serverless`
 - `GET /api/export` protected CSV export
+- `GET /api/export/xlsx` protected Excel (.xlsx) export
+- `/admin` page (token-gated): view responses in a table, export CSV/Excel, and generate an AI summary of trends/issues
 - Vercel-ready environment variable template
 
 ## Run locally
@@ -30,16 +32,22 @@ The database table is created automatically on the first successful submission.
 3. Add environment variables in Vercel Project Settings:
    - `DATABASE_URL`
    - `ADMIN_TOKEN`
+   - `ANTHROPIC_API_KEY` (only needed for the AI summary feature on `/admin`)
 4. Deploy. Vercel will detect Next.js automatically.
 
-## Export responses
-Use the protected endpoint with an Authorization header:
+## Viewing and exporting responses
+Open `/admin` and enter the `ADMIN_TOKEN` to browse responses, export CSV/Excel, or generate an AI summary.
+
+Or use the protected endpoints directly with an Authorization header:
 
 `Authorization: Bearer <ADMIN_TOKEN>`
 
-Request `GET /api/export` to download `cp-kpi-feedback.csv`.
+- `GET /api/export` → downloads `cp-kpi-feedback.csv`
+- `GET /api/export/xlsx` → downloads `cp-kpi-feedback.xlsx`
+- `GET /api/admin/responses` → JSON list of responses
+- `POST /api/admin/summary` → `{ summary, count }`, an AI-generated summary of trends/issues (requires `ANTHROPIC_API_KEY`)
 
-For a quick browser-only internal workflow, `/api/export?token=<ADMIN_TOKEN>` also works, but the Authorization header is preferable because it does not place the token in the URL/history.
+For a quick browser-only internal workflow, `?token=<ADMIN_TOKEN>` as a query param also works on the `GET` endpoints, but the Authorization header is preferable because it does not place the token in the URL/history.
 
 ## Data fields
 - `id`
@@ -55,7 +63,6 @@ For a quick browser-only internal workflow, `/api/export?token=<ADMIN_TOKEN>` al
 - `issue`
 
 ## Next sensible additions (not included yet)
-- Internal admin dashboard with response charts / filters
+- Response charts / filters on the admin page
 - Screenshot upload for issue reports
-- Authentication / VNG SSO
-- Automated AI summary of recurring themes
+- Authentication / VNG SSO (the admin page currently uses a single shared `ADMIN_TOKEN`, not per-user login)
